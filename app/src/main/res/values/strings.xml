@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Resto Review</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="review">Review</string>
+    <string name="write_your_review_here">Leave us some review..</string>
+    <string name="send">Send</string>
 </resources>

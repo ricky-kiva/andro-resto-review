@@ -47,3 +47,5 @@ val retrofit = Retrofit.Builder()
     .addConverterFactory(GsonConverterFactory.create())
     .client(client)
     .build()*/
+
+// RoboPOJOGenerator: to automatically generate POJO (Kotlin data class from JSON)
