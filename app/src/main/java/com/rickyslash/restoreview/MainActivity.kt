@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -30,19 +31,58 @@ class MainActivity : AppCompatActivity() {
 
         supportActionBar?.hide()
 
+        val mainViewModel = ViewModelProvider(this, ViewModelProvider.NewInstanceFactory())[MainViewModel::class.java]
+        mainViewModel.restaurant.observe(this) { restaurant ->
+            setRestaurantData(restaurant)
+        }
+
         val layoutManager = LinearLayoutManager(this)
         binding.rvReview.layoutManager = layoutManager
         val itemDecoration = DividerItemDecoration(this, layoutManager.orientation)
         binding.rvReview.addItemDecoration(itemDecoration)
 
-        findRestaurant()
+        mainViewModel.listReview.observe(this) { customerReviews ->
+            setReviewData(customerReviews)
+        }
+
+        mainViewModel.isLoading.observe(this) {
+            showLoading(it)
+        }
 
         binding.btnSend.setOnClickListener { view ->
-            postReview(binding.edReview.text.toString())
+            mainViewModel.postReview(binding.edReview.text.toString())
             val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(view.windowToken, 0)
         }
     }
+
+    private fun setRestaurantData(restaurant: Restaurant) {
+        binding.tvTitle.text = restaurant.name
+        binding.tvDescription.text = restaurant.description
+        Glide.with(this@MainActivity)
+            .load("https://restaurant-api.dicoding.dev/images/large/${restaurant.pictureId}")
+            .into(binding.ivPicture)
+    }
+
+    private fun setReviewData(customerReviews: List<CustomerReviewsItem>) {
+        val listReview = ArrayList<String>()
+        for (review in customerReviews) {
+            listReview.add("${review.name}: ${review.review}".trimIndent())
+        }
+        val adapter = ReviewAdapter(listReview)
+        binding.rvReview.adapter = adapter
+        binding.edReview.setText("")
+    }
+
+    private fun showLoading(isLoading: Boolean) {
+        if (isLoading) {
+            binding.progressBar.visibility = View.VISIBLE
+        } else {
+            binding.progressBar.visibility = View.GONE
+        }
+    }
+
+    /* Not using this again, because we use ViewModel
 
     private fun findRestaurant() {
         showLoading(true)
@@ -72,32 +112,6 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun setRestaurantData(restaurant: Restaurant) {
-        binding.tvTitle.text = restaurant.name
-        binding.tvDescription.text = restaurant.description
-        Glide.with(this@MainActivity)
-            .load("https://restaurant-api.dicoding.dev/images/large/${restaurant.pictureId}")
-            .into(binding.ivPicture)
-    }
-
-    private fun setReviewData(customerReviews: List<CustomerReviewsItem>) {
-        val listReview = ArrayList<String>()
-        for (review in customerReviews) {
-            listReview.add("${review.name}: ${review.review}".trimIndent())
-        }
-        val adapter = ReviewAdapter(listReview)
-        binding.rvReview.adapter = adapter
-        binding.edReview.setText("")
-    }
-
-    private fun showLoading(isLoading: Boolean) {
-        if (isLoading) {
-            binding.progressBar.visibility = View.VISIBLE
-        } else {
-            binding.progressBar.visibility = View.GONE
-        }
-    }
-
     private fun postReview(review: String) {
         showLoading(true)
         val client = ApiConfig.getApiService().postReview(RESTAURANT_ID, "Starlord", review)
@@ -121,7 +135,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
-    }
+    }*/
 
 }
 
